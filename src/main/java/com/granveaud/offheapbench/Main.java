@@ -28,8 +28,9 @@ public class Main {
             MapDBStore.class,
             ChronicleStore.class,
             JNAStore.class,
-            FSTStore.class
-            /*DirectMemoryStore.class*/
+            FSTStore.class,
+            DirectMapStore.class,
+            DirectMemoryStore.class
     );
 
     @SuppressWarnings("unchecked")
@@ -99,10 +100,10 @@ public class Main {
     }
 
     private static void gc() {
-        LOGGER.info("Calling GC and sleeping 20s");
+        LOGGER.info("Calling GC and sleeping 10s");
         System.gc();
         try {
-            Thread.sleep(20000);
+            Thread.sleep(10000);
         } catch (InterruptedException e) {
         }
     }

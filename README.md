@@ -7,7 +7,7 @@ A simple benchmark of some off heap solutions:
 - MapDB (http://www.mapdb.org/)
 - FSTOffHeapMap (https://code.google.com/p/fast-serialization/)
 - a Java Chronicle based map (https://github.com/OpenHFT/Java-Chronicle/)
-- a JNA based map (https://jna.java.net/)
+- a simple JNA based map (https://jna.java.net/)
 - an Apache DirectMemory based map (http://directmemory.apache.org/)
 
 We also test a regular heap map to measure the overhead of off heap implementations.
@@ -22,5 +22,6 @@ performances of implementations like Big Memory Go which uses a heap cache)
 - random reads and updates
 
 TODO:
+=====
 - test with different bean size
 - measure memory fragmentation in the read/update scenario

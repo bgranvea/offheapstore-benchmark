@@ -3,7 +3,7 @@ package com.granveaud.offheapbench.tests;
 import com.granveaud.offheapbench.store.OffHeapStore;
 
 public abstract class AbstractTest implements Test {
-    final static public int NB_RECORDS = 2000000;
+    final static public int NB_RECORDS = 500000;
 
     protected OffHeapStore store;
 

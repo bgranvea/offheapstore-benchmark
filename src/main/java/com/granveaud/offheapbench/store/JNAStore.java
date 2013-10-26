@@ -14,6 +14,7 @@ public class JNAStore implements OffHeapStore {
 
     // Note: Memory.finalize will free native memory if an element is replaced/removed
     private Map<Serializable, Memory> memoryMap;
+    private long allocated;
 
     public JNAStore() {
         memoryMap = new HashMap<Serializable, Memory>();
@@ -34,6 +35,8 @@ public class JNAStore implements OffHeapStore {
         b.write(m);
 
         memoryMap.put(key, m);
+
+        allocated += m.size();
     }
 
     @Override
@@ -59,6 +62,6 @@ public class JNAStore implements OffHeapStore {
 
     @Override
     public void displayStats() {
-        LOGGER.info("Stats: size=" + memoryMap.size() + " entries");
+        LOGGER.info("Stats: size=" + memoryMap.size() + " entries / allocated=" + allocated);
     }
 }

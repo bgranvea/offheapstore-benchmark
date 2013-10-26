@@ -1,35 +1,39 @@
 package com.granveaud.offheapbench.bean;
 
+import com.granveaud.directobjects.DirectObject;
 import com.granveaud.offheapbench.utils.StringUtils;
 import com.sun.jna.Memory;
 import net.openhft.lang.io.Bytes;
 
-import java.io.*;
-import java.nio.ByteBuffer;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Random;
 
-public class Bean implements Externalizable {
+public class Bean extends DirectObject implements Externalizable {
     final static private Random rand = new Random();
 
     private int value1;
     private String value2;
-    private byte[] value2Bytes;
 
     private int[] array1;
     private String[] array2;
+
+    // value2 and array2 strings are converted to byte[] so that we know serialization length in advance
+    private byte[] value2Bytes;
     private byte[][] array2Bytes;
 
     private int hashValue;
 
-    public Bean() {}
+    public Bean() {
+    }
 
     // create a bean with random values
     public Bean(int maxStringLength, int maxArrayLength) {
         value1 = rand.nextInt();
         value2 = randomString(maxStringLength);
-        value2Bytes = StringUtils.stringToUTF8Bytes(value2);
 
         array1 = new int[rand.nextInt(maxArrayLength) + 1];
         for (int i = 0; i < array1.length; i++) {
@@ -40,6 +44,9 @@ public class Bean implements Externalizable {
         for (int i = 0; i < array2.length; i++) {
             array2[i] = randomString(maxStringLength);
         }
+
+        // prepare serialization
+        value2Bytes = StringUtils.stringToUTF8Bytes(value2);
         array2Bytes = new byte[array2.length][];
         for (int i = 0; i < array2.length; i++) {
             array2Bytes[i] = StringUtils.stringToUTF8Bytes(array2[i]);
@@ -50,7 +57,7 @@ public class Bean implements Externalizable {
         int length = rand.nextInt(maxLength) + 1;
         StringBuilder sb = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
-            sb.append(Character.toChars(rand.nextInt(64) + 32));
+            sb.append((char) rand.nextInt(65536));
         }
 
         return sb.toString();
@@ -230,7 +237,6 @@ public class Bean implements Externalizable {
     }
 
     // Externalizable
-
     @Override
     public void writeExternal(ObjectOutput oo) throws IOException {
         oo.writeInt(value1);
@@ -267,5 +273,71 @@ public class Bean implements Externalizable {
             oi.read(array2Bytes[i], 0, array2Bytes[i].length);
             array2[i] = StringUtils.utf8BytesToString(array2Bytes[i]);
         }
+    }
+
+    // DirectObject
+    @Override
+    protected void serialize() {
+        putInt(value1);
+        putStringFast(value2);
+        alignInt();
+
+        putInt(array1.length);
+        for (int v : array1) {
+            putInt(v);
+        }
+
+        putInt(array2.length);
+        for (String data : array2) {
+            putStringFast(data);
+            alignInt();
+        }
+    }
+
+    @Override
+    protected void unserialize() {
+        value1 = getInt();
+        value2 = getStringFast();
+        alignInt();
+
+        array1 = new int[getInt()];
+        for (int i = 0; i < array1.length; i++) {
+            array1[i] = getInt();
+        }
+
+        array2 = new String[getInt()];
+        for (int i = 0; i < array2.length; i++) {
+            array2[i] = getStringFast();
+            alignInt();
+        }
+    }
+
+    @Override
+    protected int getSerializedSize() {
+        int p = 0;
+        p += 4; // value1
+        p += getStringFastLength(value2); // value2
+        p = alignPositionInt(p);
+        p += 4 + 4 * array1.length; // array1
+        p += 4; // array2.length;
+        for (String data : array2) {
+            p += getStringFastLength(data); // array2[i]
+            p = alignPositionInt(p);
+        }
+
+        return p;
+    }
+
+    @Override
+    public String toString() {
+        return "Bean{" +
+                "value1=" + value1 +
+                ", value2='" + value2 + '\'' +
+                ", value2Bytes=" + Arrays.toString(value2Bytes) +
+                ", array1=" + Arrays.toString(array1) +
+                ", array2=" + Arrays.toString(array2) +
+                ", array2Bytes=" + Arrays.toString(array2Bytes) +
+                ", hashValue=" + hashValue +
+                '}';
     }
 }
