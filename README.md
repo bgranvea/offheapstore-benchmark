@@ -9,6 +9,7 @@ A simple benchmark of some off heap solutions:
 - a Java Chronicle based map (https://github.com/OpenHFT/Java-Chronicle/)
 - a simple JNA based map (https://jna.java.net/)
 - an Apache DirectMemory based map (http://directmemory.apache.org/)
+- my own implementation: DirectMap (https://github.com/bgranvea/directobjects)
 
 We also test a regular heap map to measure the overhead of off heap implementations.
 
