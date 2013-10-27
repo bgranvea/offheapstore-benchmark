@@ -1,6 +1,7 @@
 package com.granveaud.offheapbench.bean;
 
 import com.granveaud.directobjects.DirectObject;
+import com.granveaud.directobjects.DirectObjectContext;
 import com.granveaud.offheapbench.utils.StringUtils;
 import com.sun.jna.Memory;
 import net.openhft.lang.io.Bytes;
@@ -12,7 +13,7 @@ import java.io.ObjectOutput;
 import java.util.Arrays;
 import java.util.Random;
 
-public class Bean extends DirectObject implements Externalizable {
+public class Bean implements Externalizable, DirectObject {
     final static private Random rand = new Random();
 
     private int value1;
@@ -277,52 +278,52 @@ public class Bean extends DirectObject implements Externalizable {
 
     // DirectObject
     @Override
-    protected void serialize() {
-        putInt(value1);
-        putStringFast(value2);
-        alignInt();
+    public void serialize(DirectObjectContext doContext) {
+        doContext.putInt(value1);
+        doContext.putStringFast(value2);
+        doContext.alignInt();
 
-        putInt(array1.length);
+        doContext.putInt(array1.length);
         for (int v : array1) {
-            putInt(v);
+            doContext.putInt(v);
         }
 
-        putInt(array2.length);
+        doContext.putInt(array2.length);
         for (String data : array2) {
-            putStringFast(data);
-            alignInt();
+            doContext.putStringFast(data);
+            doContext.alignInt();
         }
     }
 
     @Override
-    protected void unserialize() {
-        value1 = getInt();
-        value2 = getStringFast();
-        alignInt();
+    public void unserialize(DirectObjectContext doContext) {
+        value1 = doContext.getInt();
+        value2 = doContext.getStringFast();
+        doContext.alignInt();
 
-        array1 = new int[getInt()];
+        array1 = new int[doContext.getInt()];
         for (int i = 0; i < array1.length; i++) {
-            array1[i] = getInt();
+            array1[i] = doContext.getInt();
         }
 
-        array2 = new String[getInt()];
+        array2 = new String[doContext.getInt()];
         for (int i = 0; i < array2.length; i++) {
-            array2[i] = getStringFast();
-            alignInt();
+            array2[i] = doContext.getStringFast();
+            doContext.alignInt();
         }
     }
 
     @Override
-    protected int getSerializedSize() {
+    public int getSerializedSize(DirectObjectContext doContext) {
         int p = 0;
         p += 4; // value1
-        p += getStringFastLength(value2); // value2
-        p = alignPositionInt(p);
+        p += doContext.getStringFastLength(value2); // value2
+        p = doContext.alignPositionInt(p);
         p += 4 + 4 * array1.length; // array1
         p += 4; // array2.length;
         for (String data : array2) {
-            p += getStringFastLength(data); // array2[i]
-            p = alignPositionInt(p);
+            p += doContext.getStringFastLength(data); // array2[i]
+            p = doContext.alignPositionInt(p);
         }
 
         return p;
